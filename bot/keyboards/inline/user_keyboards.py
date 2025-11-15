@@ -487,3 +487,37 @@ def get_autorenew_confirm_keyboard(enable: bool, sub_id: int, lang: str, i18n_in
         InlineKeyboardButton(text=_(key="no_button"), callback_data="main_action:my_subscription"),
     )
     return builder.as_markup()
+
+
+def get_terms_acceptance_keyboard(
+        lang: str,
+        i18n_instance,
+        terms_documents_url: Optional[str] = None) -> InlineKeyboardMarkup:
+    """Return keyboard with buttons for terms acceptance."""
+    if i18n_instance is None:
+        return None
+
+    _ = lambda key, **kwargs: i18n_instance.gettext(lang, key, **kwargs)
+    builder = InlineKeyboardBuilder()
+
+    # Button to accept terms
+    builder.button(
+        text=_(key="terms_accept_button"),
+        callback_data="terms:accept",
+    )
+
+    # Button to open documents (if URL is provided)
+    if terms_documents_url:
+        builder.button(
+            text=_(key="terms_open_documents_button"),
+            url=terms_documents_url,
+        )
+
+    # Button to decline
+    builder.button(
+        text=_(key="terms_decline_button"),
+        callback_data="terms:decline",
+    )
+
+    builder.adjust(1)
+    return builder.as_markup()

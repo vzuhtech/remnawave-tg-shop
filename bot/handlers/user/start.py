@@ -16,6 +16,7 @@ from bot.keyboards.inline.user_keyboards import (
     get_main_menu_inline_keyboard,
     get_language_selection_keyboard,
     get_channel_subscription_keyboard,
+    get_terms_acceptance_keyboard,
 )
 from bot.services.subscription_service import SubscriptionService
 from bot.services.panel_api_service import PanelApiService
@@ -458,6 +459,14 @@ async def start_command_handler(message: types.Message,
                                                       db_user):
         return
 
+    # Check if user has accepted terms
+    if not db_user.terms_accepted:
+        terms_message_text = _("terms_acceptance_required")
+        keyboard = get_terms_acceptance_keyboard(
+            current_lang, i18n, settings.TERMS_DOCUMENTS_URL)
+        await message.answer(terms_message_text, reply_markup=keyboard)
+        return
+
     # Send welcome message if not disabled
     if not settings.DISABLE_WELCOME_MESSAGE:
         await message.answer(_(key="welcome", user_name=hd.quote(user.full_name)))
@@ -706,5 +715,75 @@ async def main_action_callback_handler(
     else:
         i18n: Optional[JsonI18n] = i18n_data.get("i18n_instance")
         _ = lambda key, **kwargs: i18n.gettext(
-            i18n_data.get("current_language"), key, **kw) if i18n else key
+            i18n_data.get("current_language"), key, **kwargs) if i18n else key
         await callback.answer(_("main_menu_unknown_action"), show_alert=True)
+
+
+@router.callback_query(F.data == "terms:accept")
+async def terms_accept_callback_handler(
+        callback: types.CallbackQuery,
+        settings: Settings,
+        i18n_data: dict,
+        subscription_service: SubscriptionService,
+        session: AsyncSession):
+    current_lang = i18n_data.get("current_language", settings.DEFAULT_LANGUAGE)
+    i18n: Optional[JsonI18n] = i18n_data.get("i18n_instance")
+    _ = lambda key, **kwargs: i18n.gettext(current_lang, key, **kwargs
+                                           ) if i18n else key
+
+    user_id = callback.from_user.id
+
+    # Update user to mark terms as accepted
+    now = datetime.now(timezone.utc)
+    update_payload = {
+        "terms_accepted": True,
+        "terms_accepted_at": now,
+        "terms_version": settings.TERMS_VERSION,
+    }
+
+    try:
+        await user_dal.update_user(session, user_id, update_payload)
+        await session.commit()
+        logging.info(f"User {user_id} accepted terms (version: {settings.TERMS_VERSION})")
+    except Exception as e_update:
+        logging.error(
+            f"Failed to update terms acceptance for user {user_id}: {e_update}",
+            exc_info=True)
+        await session.rollback()
+        await callback.answer(_("error_occurred_try_again"), show_alert=True)
+        return
+
+    # Show success message
+    success_text = _("terms_accepted_success")
+    await callback.answer(success_text, show_alert=True)
+
+    # Send welcome message if not disabled
+    if not settings.DISABLE_WELCOME_MESSAGE:
+        if callback.message:
+            await callback.message.answer(_(key="welcome",
+                                            user_name=hd.quote(callback.from_user.full_name)))
+        else:
+            await callback.bot.send_message(
+                user_id, _(key="welcome",
+                          user_name=hd.quote(callback.from_user.full_name)))
+
+    # Show main menu
+    await send_main_menu(callback,
+                         settings,
+                         i18n_data,
+                         subscription_service,
+                         session,
+                         is_edit=bool(callback.message))
+
+
+@router.callback_query(F.data == "terms:decline")
+async def terms_decline_callback_handler(
+        callback: types.CallbackQuery,
+        i18n_data: dict):
+    current_lang = i18n_data.get("current_language", "ru")
+    i18n: Optional[JsonI18n] = i18n_data.get("i18n_instance")
+    _ = lambda key, **kwargs: i18n.gettext(current_lang, key, **kwargs
+                                           ) if i18n else key
+
+    decline_text = _("terms_declined_message")
+    await callback.answer(decline_text, show_alert=True)

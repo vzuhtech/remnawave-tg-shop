@@ -29,6 +29,9 @@ class User(Base):
     channel_subscription_checked_at = Column(DateTime(timezone=True),
                                              nullable=True)
     channel_subscription_verified_for = Column(BigInteger, nullable=True)
+    terms_accepted = Column(Boolean, nullable=True, default=False)
+    terms_accepted_at = Column(DateTime(timezone=True), nullable=True)
+    terms_version = Column(String, nullable=True)
 
     referrer = relationship("User", remote_side=[user_id], backref="referrals")
     subscriptions = relationship("Subscription",

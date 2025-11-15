@@ -112,6 +112,28 @@ def _migration_0003_normalize_referral_codes(connection: Connection) -> None:
         )
     )
 
+
+def _migration_0004_add_terms_acceptance_fields(connection: Connection) -> None:
+    inspector = inspect(connection)
+    columns: Set[str] = {col["name"] for col in inspector.get_columns("users")}
+    statements: List[str] = []
+
+    if "terms_accepted" not in columns:
+        statements.append(
+            "ALTER TABLE users ADD COLUMN terms_accepted BOOLEAN DEFAULT FALSE"
+        )
+    if "terms_accepted_at" not in columns:
+        statements.append(
+            "ALTER TABLE users ADD COLUMN terms_accepted_at TIMESTAMPTZ"
+        )
+    if "terms_version" not in columns:
+        statements.append(
+            "ALTER TABLE users ADD COLUMN terms_version VARCHAR"
+        )
+
+    for stmt in statements:
+        connection.execute(text(stmt))
+
 MIGRATIONS: List[Migration] = [
     Migration(
         id="0001_add_channel_subscription_fields",
@@ -127,6 +149,11 @@ MIGRATIONS: List[Migration] = [
         id="0003_normalize_referral_codes",
         description="Normalize referral codes to uppercase for consistent lookups",
         upgrade=_migration_0003_normalize_referral_codes,
+    ),
+    Migration(
+        id="0004_add_terms_acceptance_fields",
+        description="Add columns to track terms of service acceptance (terms_accepted, terms_accepted_at, terms_version)",
+        upgrade=_migration_0004_add_terms_acceptance_fields,
     ),
 ]
 

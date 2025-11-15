@@ -474,5 +474,11 @@
   "admin_ads_delete_confirm": "Вы уверены, что хотите удалить кампанию #{id}? Это действие необратимо.",
   "admin_ads_deleted_success": "Кампания удалена.",
   "admin_ads_not_found": "Кампания не найдена.",
-  "free_kassa_order_full": "Заказ №{order_id} от {date}\n\n"
+  "free_kassa_order_full": "Заказ №{order_id} от {date}\n\n",
+  "terms_acceptance_required": "Для продолжения работы необходимо ознакомиться и принять соглашения.",
+  "terms_accept_button": "Согласен",
+  "terms_open_documents_button": "Открыть документы",
+  "terms_decline_button": "Отказаться",
+  "terms_accepted_success": "✅ Согласие принято! Теперь вы можете пользоваться ботом.",
+  "terms_declined_message": "❌ Вы отказались от принятия соглашения. Для использования бота необходимо принять соглашение."
 }

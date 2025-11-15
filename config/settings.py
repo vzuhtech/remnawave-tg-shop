@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     SUPPORT_LINK: Optional[str] = Field(default=None)
     SERVER_STATUS_URL: Optional[str] = Field(default=None)
     TERMS_OF_SERVICE_URL: Optional[str] = Field(default=None)
+    TERMS_DOCUMENTS_URL: Optional[str] = Field(
+        default=None,
+        description="URL to terms of service documents that users must accept")
+    TERMS_VERSION: str = Field(
+        default="1.0",
+        description="Version of the terms of service agreement")
     REQUIRED_CHANNEL_ID: Optional[int] = Field(
         default=None,
         description="Telegram channel ID the user must join to access the bot")

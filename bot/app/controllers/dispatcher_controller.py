@@ -14,6 +14,7 @@ from bot.middlewares.ban_check_middleware import BanCheckMiddleware
 from bot.middlewares.action_logger_middleware import ActionLoggerMiddleware
 from bot.middlewares.profile_sync import ProfileSyncMiddleware
 from bot.middlewares.channel_subscription import ChannelSubscriptionMiddleware
+from bot.middlewares.terms_acceptance_middleware import TermsAcceptanceMiddleware
 
 
 def build_dispatcher(settings: Settings, async_session_factory: sessionmaker) -> tuple[Dispatcher, Bot, Dict]:
@@ -33,6 +34,7 @@ def build_dispatcher(settings: Settings, async_session_factory: sessionmaker) ->
     dp.update.outer_middleware(ProfileSyncMiddleware())
     dp.update.outer_middleware(BanCheckMiddleware(settings=settings, i18n_instance=i18n_instance))
     dp.update.outer_middleware(ChannelSubscriptionMiddleware(settings=settings, i18n_instance=i18n_instance))
+    dp.update.outer_middleware(TermsAcceptanceMiddleware(settings=settings, i18n_instance=i18n_instance))
     dp.update.outer_middleware(ActionLoggerMiddleware(settings=settings))
 
     return dp, bot, {"i18n_instance": i18n_instance}
