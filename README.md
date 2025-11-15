@@ -45,7 +45,7 @@
 
 1.  **Клонируйте репозиторий:**
     ```bash
-    git clone https://github.com/machka-pasla/remnawave-tg-shop
+    git clone https://github.com/vzuhtech/remnawave-tg-shop
     cd remnawave-tg-shop
     ```
 
